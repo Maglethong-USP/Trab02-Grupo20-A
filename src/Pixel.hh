@@ -174,6 +174,7 @@ public:
 		throw 1;
 	}
 
+	// TODO [operador deveria ser para texto... fazer func equivalente para binario]
 	friend std::ostream &operator<<(std::ostream &out, Pixel obj)
 	{
 	//	out << obj.r;

@@ -14,6 +14,22 @@ Image::Image(int width, int height)
 	this->Init(width, height);
 }
 
+Image::Image(Image *other)
+{
+	if(other->width > 0 && other->height > 0)
+	{
+		this->Init(other->width, other->height);
+		for(int i=0; i<this->height *this->width; i++)
+			this->image[i] = other->image[i];
+	}
+	else
+	{
+		this->width = -1;
+		this->height = -1;
+		this->image = NULL;
+	}
+}
+
 Image::~Image()
 {
 	if(this->image != NULL)
@@ -41,9 +57,10 @@ int Image::Read(const char *fileName)
 	int mode;
 	stream >> tmp;
 	if(tmp[0] == 'P' && tmp[1] == '6')
-		mode = BINARY;
+		mode = COLOR_BINARY;
 	else if(tmp[0] == 'P' && tmp[1] == '3')
-		mode = TEXT;
+		mode = COLOR_TEXT;
+	// TODO [Imagen PGM]
 
 	// Read dimensions
 	int width, height;
@@ -59,15 +76,15 @@ int Image::Read(const char *fileName)
 	if(this->image != NULL)
 		delete[] this->image;
 	this->Init(width, height);
-	if(mode == BINARY)
+	if(mode == COLOR_BINARY)
 		this->ReadBinary(stream);
-	else if(mode == TEXT)
+	else if(mode == COLOR_TEXT)
 		this->ReadPlainText(stream);
 
 	stream.close();
 }
 
-int Image::Write(const char *fileName){ this->Write(fileName, BINARY); }
+int Image::Write(const char *fileName){ this->Write(fileName, COLOR_BINARY); }
 
 int Image::Write(const char *fileName, const int mode)
 {
@@ -75,10 +92,11 @@ int Image::Write(const char *fileName, const int mode)
 	stream.open(fileName);
 
 	// Write mode
-	if(mode == BINARY)
+	if(mode == COLOR_BINARY)
 		stream << "P6\n";
-	else if(mode == TEXT)
+	else if(mode == COLOR_TEXT)
 		stream << "P3\n";
+	// TODO [Imagen PGM]
 
 	// Write dimensions
 	stream << this->width << ' ' << this->height << "\n";
@@ -87,9 +105,9 @@ int Image::Write(const char *fileName, const int mode)
 	stream << "255" << "\n";
 
 	// Write image
-	if(mode == BINARY)
+	if(mode == COLOR_BINARY)
 		this->WriteBinary(stream);
-	else if(mode == TEXT)
+	else if(mode == COLOR_TEXT)
 		this->WritePlainText(stream);
 
 	stream.close();
@@ -120,44 +138,162 @@ int Image::WriteBinary(std::ofstream &stream)
 
 void Image::Smooth()
 {
-	
-	// Copy so we don't use altered pixels for smooth calculation
-	Image extended_copy(this->width +2, this->height +1);
-	for(int i=0; i<this->height; i++)
-	{
-		for(int j=0; j<this->width; j++)
-			extended_copy.GetPixel(i +1, j+1) = this->GetPixel(i, j);
-		// Left/Right borders copy closest values
-		extended_copy.GetPixel(i +1, 0) = this->GetPixel(i, 1);
-		extended_copy.GetPixel(i +1, this->width +1) = this->GetPixel(i, this->width -1);
-	}
-	// Top/Bottom borders copies closest value
-	for(int j=0; j<this->width+2; j++)
-	{
-		// Left/Right borders copy closest values
-		extended_copy.GetPixel(0, j) = this->GetPixel(1, j);
-		extended_copy.GetPixel(this->height +1, j) = this->GetPixel(this->height -1, j);
-	}
+	// TODO [use SetWithSubimage once tested]
+	Image extended_copy;
+
+	extended_copy.SetWithSubimage(*this, -1, -1, this->width +2, this->height +2);
 
 	// Smooth using extended image
 	for(int i=0; i< this->height; i++)
 		for(int j=0; j<this->width; j++)
-		{
-			// Calculate Average
-			int sum[3] = {0, 0, 0};
-			for(int color=0; color<3; color++)
-			{
-				for(int h = i-1; h<=i+1; h++)
-					for(int w = j-1; w<=j+1; w++)
-						sum[color] += extended_copy.GetPixel(h+1, w+1)[color];
+			this->GetPixel(i, j) = extended_copy.SmoothedPixel(i +1, j +1);
+}
 
-				// Save new Value
-				this->GetPixel(i, j)[color] = (p_type) (sum[color]/9);
-			}
-		}
+void Image::Smooth_WhithouBorders()
+{
+	// Copy so we don't use altered pixels for smooth calculation
+	Image copy(this);
+
+	// Smooth using copy
+	for(int i=1; i< this->height -1; i++)
+		for(int j=1; j<this->width -1; j++)
+			this->GetPixel(i, j) = copy.SmoothedPixel(i, j);
 }
 
 Pixel & Image::GetPixel(int i, int j)
 {
 	return this->image[i *this->width +j];
+}
+
+Pixel Image::SmoothedPixel(int i, int j)
+{
+	Pixel ret;
+
+	// Calculate Average
+	int sum[3] = {0, 0, 0};
+	for(int color=0; color<3; color++)
+	{
+		for(int h = i-1; h<=i+1; h++)
+			for(int w = j-1; w<=j+1; w++)
+				sum[color] += this->GetPixel(h, w)[color];
+
+		// Save new Value
+		ret[color] = (p_type) (sum[color]/9);
+	}
+
+	return ret;
+}
+
+std::vector<Image> Image::Split(int vertical, int horizontal)
+{
+	std::vector<Image> ret(vertical *horizontal);
+
+	int start_i;
+	int start_j;
+	int end_i;
+	int end_j;
+
+	int height = this->height/vertical;
+	int width = this->width/horizontal;
+	int curImage = 0;
+
+
+	start_i = 0;
+	end_i = height -1;
+
+	for(int i=0; i<vertical; i++)
+	{
+		start_j = 0;
+		end_j = width -1;
+
+		for(int j=0; j<horizontal; j++)
+		{
+			ret[curImage].SetWithSubimage(	*this, start_i -1, start_j -1, 
+											end_j -start_j +2 +1, end_i -start_i +2 +1);
+
+			start_j = end_j +1;
+
+			if(j < horizontal -2)
+				end_j += width;
+			else // Last gets rest
+				end_j = this->width -1;
+
+			curImage++;
+		}
+		
+		start_i = end_i +1;
+
+		if(i < vertical -2)
+			end_i += height;
+		else // Last gets rest
+			end_i = this->height -1;
+	}
+
+	return ret;
+}
+
+void Image::SetWithSubimage(Image &other, int line, int column, int width, int height)
+{
+	this->Init(width, height);
+
+	int line_min 	= (line < 0) 						? 0 : line;
+	int column_min 	= (column < 0) 						? 0 : column;
+	int line_max	= (line +height >= other.height) 	? other.height -1 : line +height -1;
+	int column_max	= (column +width >= other.width) 	? other.width -1 : column +width -1;
+
+
+	// Copy Center
+	for(int i=1; i<height -1; i++)
+		for(int j=1; j<width -1; j++)
+			this->GetPixel(i, j) = other.GetPixel(line +i, column +j);
+	
+	// Top Border
+	for(int j=1; j<width -1; j++)
+		this->GetPixel(0, j) = other.GetPixel(line_min, column +j);
+
+	// Bottom Border
+	for(int j=1; j<width -1; j++)
+		this->GetPixel(height -1, j) = other.GetPixel(line_max, column +j);
+
+	// Left Border
+	for(int i=1; i<height -1; i++)
+		this->GetPixel(i, 0) = other.GetPixel(line +i, column_min);
+
+	// Right Border
+	for(int i=1; i<height -1; i++)
+		this->GetPixel(i, width -1) = other.GetPixel(line +i, column_max);
+
+	// Vertices
+	this->GetPixel(0, 0) 				= other.GetPixel(line_min, column_min);
+	this->GetPixel(0, width -1) 		= other.GetPixel(line_min, column_max);
+	this->GetPixel(height -1, 0) 		= other.GetPixel(line_max, column_min);
+	this->GetPixel(height -1, width -1) = other.GetPixel(line_max, column_max);
+}
+
+void Image::Merge(std::vector<Image> &others, int verticalSplits)
+{
+	int horizontalSplits = others.size()/verticalSplits;
+	int curImage = 0;
+	int curLine = 0;
+	int curColumn = 0;
+
+	for(int i=0; i<horizontalSplits; i++)
+	{
+		curColumn = 0;
+		for(int j=0; j<verticalSplits; j++)
+		{
+			this->Merge(others[curImage], curLine, curColumn);
+
+			curColumn += others[curImage].width -2;
+			curImage++;
+		}
+		curLine += others[curImage -1].height -2;
+	}
+}
+
+void Image::Merge(Image &other, int line, int column)
+{
+	for(int i=0; i<other.height-2; i++)
+		for(int j=0; j<other.width-2; j++)
+			this->GetPixel(line +i, column +j) = other.GetPixel(i+1, j+1);
 }
