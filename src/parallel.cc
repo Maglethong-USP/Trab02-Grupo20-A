@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 		MPI_Recv(&color, 	1, MPI_INT, source, 0, MPI_COMM_WORLD, &Stat);
 		MPI_Recv(&width, 	1, MPI_INT, source, 1, MPI_COMM_WORLD, &Stat);
 		MPI_Recv(&height, 	6, MPI_INT, source, 2, MPI_COMM_WORLD, &Stat);
-		size = GetImageArraySize(width, height, (bool) color);
+		size = Image::GetImageArraySize(width, height, (bool) color);
 		imgArray = new char[size];
 		MPI_Recv(&imgArray, size, MPI_CHAR, source, 3, MPI_COMM_WORLD, &Stat);
 
