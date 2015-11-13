@@ -28,6 +28,11 @@ int main(int argc, char *argv[])
 	int verticalSlices = 2;
 	int horizontalSlices = 2;
 
+	int width, height;
+	int size;
+	int color;
+	char *imgArray = NULL;
+
 	// Master Rank
 	if(processID == 0)
 	{
@@ -39,23 +44,26 @@ int main(int argc, char *argv[])
 		int largestSize = Image::GetImageArraySize(imgList[0].GetWidth(), imgList[0].GetHeight(), imgList[0].GetColor());
 		char *imgArray = new char[largestSize];
 
-		for(int i=0; i<imgList.length(); i++)
+		for(int i=0; i<imgList.size(); i++)
 		{
 			int dest = i+1;
-			int size = Image::GetImageArraySize(imgList[i].GetWidth(), imgList[i].GetHeight(), imgList[i].GetColor());
+			size = Image::GetImageArraySize(imgList[i].GetWidth(), imgList[i].GetHeight(), imgList[i].GetColor());
 			if(size > largestSize) // Shouldn't happen but lets be safe
 				return 1;
 			imgList[i].GetImageAsArray(imgArray);
-			int color = imgList[i].GetColor();
 
-			MPI_Send(&color, 					1, 		MPI_INT, 	dest, 0, MPI_COMM_WORLD);
-			MPI_Send(&(imgList[i].GetWidth()), 	1, 		MPI_INT, 	dest, 1, MPI_COMM_WORLD);
-			MPI_Send(&(imgList[i].GetHeight()), 1, 		MPI_INT, 	dest, 2, MPI_COMM_WORLD);
-			MPI_Send(&imgArray, 				size, 	MPI_CHAR, 	dest, 3, MPI_COMM_WORLD);
+			color = imgList[i].GetColor();
+			width = imgList[i].GetWidth();
+			height = imgList[i].GetHeight();
+
+			MPI_Send(&color, 	1, 		MPI_INT, 	dest, 0, MPI_COMM_WORLD);
+			MPI_Send(&width, 	1, 		MPI_INT, 	dest, 1, MPI_COMM_WORLD);
+			MPI_Send(&height, 	1, 		MPI_INT, 	dest, 2, MPI_COMM_WORLD);
+			MPI_Send(&imgArray, size, 	MPI_CHAR, 	dest, 3, MPI_COMM_WORLD);
 		}
 
 		// Wait for them to Respond
-		for(int i=0; i<imgList.length(); i++)
+		for(int i=0; i<imgList.size(); i++)
 		{
 			int source = i+1;
 			MPI_Recv(imgArray, size, MPI_CHAR, source, 4, MPI_COMM_WORLD, &Stat);
@@ -72,10 +80,6 @@ int main(int argc, char *argv[])
 	else
 	{
 		// Receive instructions from Master
-		int width, height;
-		int size;
-		int color;
-		char *imgArray = NULL;
 		int source = 0;
 
 		MPI_Recv(&color, 	1, MPI_INT, source, 0, MPI_COMM_WORLD, &Stat);

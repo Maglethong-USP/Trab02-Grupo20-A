@@ -336,7 +336,7 @@ void Image::GetImageAsArray(char *image)
 		}
 }
 
-int Image::GetImageArraySize(int width, int heigh, bool color)
+int Image::GetImageArraySize(int width, int height, bool color)
 {
 	if(color)
 		return height *width *3;
