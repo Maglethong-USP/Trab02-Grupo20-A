@@ -338,16 +338,16 @@ void Image::GetImageAsArray(char *image)
 
 int Image::GetImageArraySize(int width, int heigh, bool color)
 {
-	if(this->color)
-		return this->height *this->width *3;
+	if(color)
+		return height *width *3;
 	else
-		return this->height *this->width;
+		return height *width;
 }
 
 
 void Image::SetFromArray(const char *array, int width, int height, bool color)
 {
-	if(this->image != null)
+	if(this->image != NULL)
 		delete[] this->image;
 
 	this->Init(width, height);
