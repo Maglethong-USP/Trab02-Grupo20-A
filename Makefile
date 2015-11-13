@@ -2,13 +2,13 @@
 # Directories # 
 ############### 
 # Binary Output Directory 
-BIN 			=	./bin 
+BIN 			=	./bin
  
 # Documentation Files/Directory 
-DOC 			=	./doc 
+DOC 			=	./doc
  
 # Source Directory 
-SRC 			=	./src 
+SRC 			=	./src
  
 ######### 
 # Other # 
