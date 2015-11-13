@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
 	Image img;
 	int verticalSlices = 2;
-	int horizontalSlices = 2;
+	int horizontalSlices = 1;
 
 	int width, height;
 	int size;

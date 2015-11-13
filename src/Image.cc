@@ -7,7 +7,7 @@ Image::Image()
 	this->width = -1;
 	this->height = -1;
 	this->image = NULL;
-	this->color = false;
+	this->color = true;
 }
 
 Image::Image(int width, int height)
@@ -29,7 +29,7 @@ Image::Image(Image *other)
 		this->width = -1;
 		this->height = -1;
 		this->image = NULL;
-		this->color = false;
+		this->color = true;
 	}
 }
 
@@ -45,7 +45,7 @@ void Image::Init(int width, int height)
 	this->width = width;
 	this->height = height;
 	this->image = new Pixel[this->width *this->height];
-	this->color = false;
+	this->color = true;
 }
 
 
