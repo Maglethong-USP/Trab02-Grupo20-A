@@ -21,9 +21,9 @@ enum Image_File_Mode
 class Image
 {
 private:
-public: // TODO
 	int width, height;
 	Pixel *image;
+	bool color;
 
 public:
 	Image();
@@ -47,8 +47,17 @@ public:
 
 	void Merge(Image &other, int line, int column);
 
+	void SetFromArray(const char *array, int width, int height, bool color);
+
+	int GetWidth();
+	int GetHeight();
+	bool GetColor();
+
+	void GetImageAsArray(char *image);
+
+	static int GetImageArraySize(int width, int heigh, bool color);
+
 private:
-public: // TODO
 	void Init(int width, int height);
 
 	int ReadPlainText(std::ifstream &stream);

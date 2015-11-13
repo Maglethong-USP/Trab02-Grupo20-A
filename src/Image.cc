@@ -7,6 +7,7 @@ Image::Image()
 	this->width = -1;
 	this->height = -1;
 	this->image = NULL;
+	this->color = false;
 }
 
 Image::Image(int width, int height)
@@ -21,12 +22,14 @@ Image::Image(Image *other)
 		this->Init(other->width, other->height);
 		for(int i=0; i<this->height *this->width; i++)
 			this->image[i] = other->image[i];
+		this->color = other->color;
 	}
 	else
 	{
 		this->width = -1;
 		this->height = -1;
 		this->image = NULL;
+		this->color = false;
 	}
 }
 
@@ -42,6 +45,7 @@ void Image::Init(int width, int height)
 	this->width = width;
 	this->height = height;
 	this->image = new Pixel[this->width *this->height];
+	this->color = false;
 }
 
 
@@ -61,6 +65,7 @@ int Image::Read(const char *fileName)
 	else if(tmp[0] == 'P' && tmp[1] == '3')
 		mode = COLOR_TEXT;
 	// TODO [Imagen PGM]
+	this->color = true;
 
 	// Read dimensions
 	int width, height;
@@ -235,6 +240,7 @@ std::vector<Image> Image::Split(int vertical, int horizontal)
 void Image::SetWithSubimage(Image &other, int line, int column, int width, int height)
 {
 	this->Init(width, height);
+	this->color = other.color;
 
 	int line_min 	= (line < 0) 						? 0 : line;
 	int column_min 	= (column < 0) 						? 0 : column;
@@ -296,4 +302,67 @@ void Image::Merge(Image &other, int line, int column)
 	for(int i=0; i<other.height-2; i++)
 		for(int j=0; j<other.width-2; j++)
 			this->GetPixel(line +i, column +j) = other.GetPixel(i+1, j+1);
+}
+
+
+
+int Image::GetWidth()
+{
+	return this->width;
+}
+
+int Image::GetHeight()
+{
+	return this->height;
+}
+bool Image::GetColor()
+{
+	return this->color;
+}
+
+void Image::GetImageAsArray(char *image)
+{
+	if(this->color)
+		for(int i=0; i<this->height *this->width; i++)
+		{
+			image[i *3 +0] = this->image[i][0];
+			image[i *3 +1] = this->image[i][1];
+			image[i *3 +2] = this->image[i][2];
+		}
+	else
+		for(int i=0; i<this->height *this->width; i++)
+		{
+			image[i] = this->image[i][0];
+		}
+}
+
+int Image::GetImageArraySize(int width, int heigh, bool color)
+{
+	if(this->color)
+		return this->height *this->width *3;
+	else
+		return this->height *this->width;
+}
+
+
+void Image::SetFromArray(const char *array, int width, int height, bool color)
+{
+	if(this->image != null)
+		delete[] this->image;
+
+	this->Init(width, height);
+	this->color = color;
+
+	if(color)
+		for(int i=0; i< width *height; i++)
+		{
+			this->image[i][0] = array[i *3 +0];
+			this->image[i][1] = array[i *3 +1];
+			this->image[i][2] = array[i *3 +2];
+		}
+	else
+		for(int i=0; i< width *height; i++)
+		{
+			this->image[i][0] = array[i];
+		}
 }
