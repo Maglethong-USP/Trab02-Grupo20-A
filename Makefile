@@ -48,7 +48,7 @@ rs:
 
 runparallel: rp
 rp:
-	$(BIN)/parallel -hostsfile ../../hosts -np 8
+	mpirun $(BIN)/parallel -hostsfile ../../hosts -np 2
 
 zip:
 	@zip -r $(ZIP) $(LIB) $(SRC) $(DOC) $(ZIP_FILES)
