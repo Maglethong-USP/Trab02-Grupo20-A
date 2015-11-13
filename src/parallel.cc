@@ -3,56 +3,106 @@
 #include "mpi.h"
 
 
+
+
+
 int main(int argc, char *argv[])
 {
-        int noProcesses;
-        int processID;
-        char computerName[MPI_MAX_PROCESSOR_NAME];
-        int nameSize;
+	int noProcesses;
+	int processID;
+	char computerName[MPI_MAX_PROCESSOR_NAME];
+	int nameSize;
+	MPI_Status Stat;
 
-        // Initializing PMI
-        if( MPI_Init(&argc, &argv) != MPI_SUCCESS )
-                return 1;
+	// Initializing PMI
+	if( MPI_Init(&argc, &argv) != MPI_SUCCESS )
+		return 1;
 
-        MPI_Comm_size(MPI_COMM_WORLD, &noProcesses);
-        MPI_Comm_rank(MPI_COMM_WORLD, &processID);
-        MPI_Get_processor_name(computerName, &nameSize);
-
-
-        // Master Rank
-        if(processID == 0)
-        {
-                std::cout << "Master! @ " << computerName << "\n";
-        }
-        // Children
-        else
-        {
-                std::cout << processID << "@" << computerName << "\n";
-        }
+	MPI_Comm_size(MPI_COMM_WORLD, &noProcesses);
+	MPI_Comm_rank(MPI_COMM_WORLD, &processID);
+	MPI_Get_processor_name(computerName, &nameSize);
 
 
 
+	Image img;
+	int verticalSlices = 2;
+	int horizontalSlices = 2;
+
+	// Master Rank
+	if(processID == 0)
+	{
+		// Read image
+		img.Read("doc/inputs/lena_color.ppm");
+
+		// Split image and send fragments to other processes
+		std::vector<Image> imgList = img.Split(verticalSlices, horizontalSlices);
+		int largestSize = Image::GetImageArraySize(imgList[0].GetWidth(), imgList[0].GetHeight(), imgList[0].GetColor());
+		char *imgArray = new char[largestSize];
+
+		for(int i=0; i<imgList.length(); i++)
+		{
+			int dest = i+1;
+			int size = Image::GetImageArraySize(imgList[i].GetWidth(), imgList[i].GetHeight(), imgList[i].GetColor());
+			if(size > largestSize) // Shouldn't happen but lets be safe
+				return 1;
+			imgList[i].GetImageAsArray(imgArray);
+			int color = imgList[i].GetColor();
+
+			MPI_Send(&color, 					1, 		MPI_INT, 	dest, 0, MPI_COMM_WORLD);
+			MPI_Send(&(imgList[i].GetWidth()), 	1, 		MPI_INT, 	dest, 1, MPI_COMM_WORLD);
+			MPI_Send(&(imgList[i].GetHeight()), 1, 		MPI_INT, 	dest, 2, MPI_COMM_WORLD);
+			MPI_Send(&imgArray, 				size, 	MPI_CHAR, 	dest, 3, MPI_COMM_WORLD);
+		}
+
+		// Wait for them to Respond
+		for(int i=0; i<imgList.length(); i++)
+		{
+			int source = i+1;
+			MPI_Recv(imgArray, size, MPI_CHAR, source, 4, MPI_COMM_WORLD, &Stat);
+			imgList[i].SetFromArray(imgArray, imgList[i].GetWidth(), imgList[i].GetHeight(), imgList[i].GetColor());
+		}
+
+		// Merge and write results
+		img.Merge(imgList, verticalSlices);
+		img.Write("doc/outputs/lena_color_p.ppm");
+
+		delete[] imgArray;
+	}
+	// Children
+	else
+	{
+		// Receive instructions from Master
+		int width, height;
+		int size;
+		int color;
+		char *imgArray = NULL;
+		int source = 0;
+
+		MPI_Recv(&color, 	1, MPI_INT, source, 0, MPI_COMM_WORLD, &Stat);
+		MPI_Recv(&width, 	1, MPI_INT, source, 1, MPI_COMM_WORLD, &Stat);
+		MPI_Recv(&height, 	6, MPI_INT, source, 2, MPI_COMM_WORLD, &Stat);
+		size = GetImageArraySize(width, height, (bool) color);
+		imgArray = new char[size];
+		MPI_Recv(&imgArray, size, MPI_CHAR, source, 3, MPI_COMM_WORLD, &Stat);
+
+		// Execute and Respond
+		img.SetFromArray(imgArray, width, height, color);
+		img.Smooth_WhithouBorders();
+
+		// Respond
+		img.GetImageAsArray(imgArray);
+		MPI_Send(&imgArray, size, MPI_CHAR, source, 4, MPI_COMM_WORLD);
 
 
+		delete[] imgArray;
+	}
 
-        MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 
+	// Finalize
+	MPI_Finalize();
 
-
-
-        // Finalize
-        MPI_Finalize();
-
-        return 0;
-
-
-
-
-        Image img1;
-        img1.Read("../../Images/Small(2048x1024).ppm");
-
-        img1.Smooth();
-        img1.Write("SmallSmoothed.ppm");
+	return 0;
 }
 
 
