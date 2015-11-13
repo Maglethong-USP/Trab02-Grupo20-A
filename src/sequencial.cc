@@ -3,11 +3,11 @@
 
 int main(int argc, char *argv[])
 {
-        Image img1;
+	Image img;
 
-        img1.Read("../../Images/Small(2048x1024).ppm");
-        img1.Smooth();
-        img1.Write("SmallSmoothed.ppm");
+	img.Read("doc/inputs/lena_color.ppm");
+	img.Smooth();
+	img.Write("doc/outputs/lena_color_s.ppm");
 
-        return 0;
+	return 0;
 }
