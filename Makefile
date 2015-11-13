@@ -1,49 +1,54 @@
-###############
-# Directories #
-###############
-# Binary Output Directory
-BIN			=	./bin
+############### 
+# Directories # 
+############### 
+# Binary Output Directory 
+BIN 			=	./bin 
+ 
+# Documentation Files/Directory 
+DOC 			=	./doc 
+ 
+# Source Directory 
+SRC 			=	./src 
+ 
+######### 
+# Other # 
+######### 
+ 
+# Source Files 
+SOURCES			=	$(SRC)/Pixel.cc $(SRC)/Image.cc 
+ 
+# Zip File Name 
+ZIP 			=	project2 
+ 
+# Other Files to add to zip 
+ZIP_FILES 		=	./Makefile ./README.md 
+ 
+ 
+################ 
+# Make Modules # 
+################ 
+ 
+all: _bin_directory_ s p
 
-# Documentation Files/Directory
-DOC			=	./doc
-
-# Includes Directory
-LIB			=	./lib
-
-# Object Directiory
-OBJ 		=	./obj
-
-# Includes Directory
-SRC			=	./src
-
-#########
-# Other #
-#########
-
-# Main Source File
-SOURCES		=	$(SRC)/*.c
-
-# Zip File Name
-ZIP			=	project1
-
-# Other Files to add to zip
-ZIP_FILES	=	./Makefile ./README.txt ./LICENSE
-
-# Flags
-FLAGS 		=	-lm -pthread -lrt
-
-
-################
-# Make Modules #
-################
-
-all:
+_bin_directory_:
 	@rm -r -v $(BIN)
 	@mkdir -v $(BIN)
-	gcc -I$(LIB) -o $(BIN)/prog $(SOURCES) $(FLAGS)
 
-run:
-	$(BIN)/prog
+sequencial: s
+s:
+	g++ -o $(BIN)/sequencial $(SOURCES) $(SRC)/sequencial.cc
+
+parallel: p
+p:
+	mpiCC -o $(BIN)/parallel $(SOURCES) $(SRC)/parallel.cc
+
+runsequencial: rs
+rs:
+	$(BIN)/sequencial
+
+runparallel: rp
+rp:
+	$(BIN)/parallel -hostsfile ../../hosts -np 8
 
 zip:
 	@zip -r $(ZIP) $(LIB) $(SRC) $(DOC) $(ZIP_FILES)
