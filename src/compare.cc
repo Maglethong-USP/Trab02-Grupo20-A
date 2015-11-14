@@ -3,10 +3,17 @@
 
 int main(int argc, char *argv[])
 {
+	if(argc < 3)
+	{
+		std::cout << "Usage: \n";
+		std::cout << argv[0] << " imagefile1 imagefile2\n";
+		return 0;
+	}
+
 	Image img1, img2;
 
-	img1.Read("doc/outputs/lena_color_s.ppm");
-	img2.Read("doc/outputs/lena_color_p.ppm");
+	img1.Read(argv[1]);
+	img2.Read(argv[2]);
 
 	if(img1 == img2)
 		std::cout << "Yes!\n"
