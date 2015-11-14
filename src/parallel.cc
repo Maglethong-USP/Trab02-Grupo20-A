@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
 		#pragma omp parallel for
 		for(int i=1; i<imgList[0].GetHeight() -1; i++)
 		{
+			Img copy;
+			copy = imgList[0];
 			imgList[0].Smooth_Line_WhithouBorders(i, copy);
 		}
 
@@ -115,10 +117,12 @@ int main(int argc, char *argv[])
 
 		// Execute and Respond
 		img.SetFromArray(imgArray, width, height, color);
-		
+
 		#pragma omp parallel for
 		for(int i=1; i<img.GetHeight() -1; i++)
 		{
+			Img copy;
+			copy = img;
 			img.Smooth_Line_WhithouBorders(i, copy);
 		}
 
