@@ -51,7 +51,7 @@ do
 
 		start=$(date +%s.%N)
 
-		mpirun --host node03,node04,node07,node11 -np 2 ./bin/parallel $in_file_name $out_file_name 2 2 
+		mpirun --host node03,node04,node07,node11 -np 2 ./bin/parallel $in_file_name $out_file_name 2 1 
 
 		dur=$(echo "$(date +%s.%N) - $start" | bc)
 
@@ -61,7 +61,7 @@ do
 	done
 done
 
-# Run for each Image in Parallel (2 processes)
+# Run for each Image in Parallel (4 processes)
 echo " " >> execTime
 echo "Starting Parallel Experiments (4 processes): " >> execTime
 echo "Starting Parallel Experiments (4 processes): "
