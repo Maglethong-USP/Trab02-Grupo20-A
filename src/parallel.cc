@@ -18,6 +18,15 @@ int main(int argc, char *argv[])
 	if( MPI_Init(&argc, &argv) != MPI_SUCCESS )
 		return 1;
 
+	if(argc < 5)
+	{
+		std::cout << "Usage: \n";
+		std::cout << argv[0] << " Inputfile Outputfile num_vertical_splits num_horizontal_splits [MPI args]\n";
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		return 0;
+	}
+
 	MPI_Comm_size(MPI_COMM_WORLD, &noProcesses);
 	MPI_Comm_rank(MPI_COMM_WORLD, &processID);
 	MPI_Get_processor_name(computerName, &nameSize);
@@ -25,8 +34,8 @@ int main(int argc, char *argv[])
 
 
 	Image img;
-	int verticalSlices = 2;
-	int horizontalSlices = 1;
+	int verticalSlices = atoi(argv[3]);
+	int horizontalSlices = atoi(argv[4]);
 
 	int width, height;
 	int size;
@@ -37,12 +46,12 @@ int main(int argc, char *argv[])
 	if(processID == 0)
 	{
 		// Read image
-		img.Read("doc/inputs/lena_color.ppm");
+		img.Read(argv[1]);
 
 		// Split image and send fragments to other processes
 		std::vector<Image> imgList = img.Split(verticalSlices, horizontalSlices);
 		int largestSize = Image::GetImageArraySize(imgList[0].GetWidth(), imgList[0].GetHeight(), imgList[0].GetColor());
-		char *imgArray = new char[largestSize];
+		imgArray = new char[largestSize];
 
 		for(int i=0; i<imgList.size(); i++)
 		{
@@ -66,13 +75,18 @@ int main(int argc, char *argv[])
 		for(int i=0; i<imgList.size(); i++)
 		{
 			int source = i+1;
+			color = imgList[i].GetColor();
+			width = imgList[i].GetWidth();
+			height = imgList[i].GetHeight();
+
+			size = Image::GetImageArraySize(width, height, color);
 			MPI_Recv(imgArray, size, MPI_CHAR, source, 4, MPI_COMM_WORLD, &Stat);
-			imgList[i].SetFromArray(imgArray, imgList[i].GetWidth(), imgList[i].GetHeight(), imgList[i].GetColor());
+			imgList[i].SetFromArray(imgArray, width, height, color);
 		}
 
 		// Merge and write results
 		img.Merge(imgList, verticalSlices);
-		img.Write("doc/outputs/lena_color_p.ppm");
+		img.Write(argv[2]);
 
 		delete[] imgArray;
 	}
