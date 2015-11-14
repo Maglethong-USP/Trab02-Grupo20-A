@@ -12,17 +12,21 @@ Image::Image()
 
 Image::Image(int width, int height)
 {
-	this->Init(width, height);
+	this->Init(width, height, true);
+}
+
+Image::Image(int width, int height, bool color)
+{
+	this->Init(width, height, color);
 }
 
 Image::Image(Image *other)
 {
 	if(other->width > 0 && other->height > 0)
 	{
-		this->Init(other->width, other->height);
+		this->Init(other->width, other->height, other->color);
 		for(int i=0; i<this->height *this->width; i++)
 			this->image[i] = other->image[i];
-		this->color = other->color;
 	}
 	else
 	{
@@ -40,32 +44,29 @@ Image::~Image()
 }
 
 
-void Image::Init(int width, int height)
+void Image::Init(int width, int height, bool color)
 {
 	this->width = width;
 	this->height = height;
 	this->image = new Pixel[this->width *this->height];
-	this->color = true;
+	this->color = color;
 }
 
-
-
-int Image::Read(const char *fileName)
+int Image::ReadHeader(std::ifstream &stream, int &mode)
 {
-	std::ifstream stream;
-	stream.open(fileName);
-
 	std::string tmp;
 
 	// Read mode
-	int mode;
 	stream >> tmp;
+
 	if(tmp[0] == 'P' && tmp[1] == '6')
 		mode = COLOR_BINARY;
 	else if(tmp[0] == 'P' && tmp[1] == '3')
 		mode = COLOR_TEXT;
-	// TODO [Imagen PGM]
-	this->color = true;
+	else if(tmp[0] == 'P' && tmp[1] == '5')
+		mode = BW_BINARY;
+	else if(tmp[0] == 'P' && tmp[1] == '2')
+		mode = BW_TEXT;
 
 	// Read dimensions
 	int width, height;
@@ -75,70 +76,114 @@ int Image::Read(const char *fileName)
 	int range;
 	stream >> range;
 
-	// Read image
+	// Reading whitespace
 	char garbage;
-	stream.read(&garbage, 1); // reading whitespace
+	stream.read(&garbage, 1);
+
+	// Create Image
 	if(this->image != NULL)
 		delete[] this->image;
-	this->Init(width, height);
-	if(mode == COLOR_BINARY)
-		this->ReadBinary(stream);
-	else if(mode == COLOR_TEXT)
-		this->ReadPlainText(stream);
+	this->Init(width, height, (mode&COLOR) );
 
-	stream.close();
 }
-
-int Image::Write(const char *fileName){ this->Write(fileName, COLOR_BINARY); }
-
-int Image::Write(const char *fileName, const int mode)
+	
+int Image::WriteHeader(std::ofstream &stream, int &mode)
 {
-	std::ofstream stream;
-	stream.open(fileName);
-
 	// Write mode
+	mode = mode & BINARY;
+	if(this->color)
+		mode = mode | COLOR;
+
 	if(mode == COLOR_BINARY)
 		stream << "P6\n";
 	else if(mode == COLOR_TEXT)
 		stream << "P3\n";
-	// TODO [Imagen PGM]
+	else if(mode == BW_BINARY)
+		stream << "P5\n";
+	else if(mode == BW_TEXT)
+		stream << "P2\n";
 
 	// Write dimensions
 	stream << this->width << ' ' << this->height << "\n";
 
 	// Write pixel range
 	stream << "255" << "\n";
+}
+
+int Image::Read(const char *fileName)
+{
+	std::ifstream stream;
+	stream.open(fileName);
+
+	int mode;
+	this->ReadHeader(stream, mode);
+
+	// Read image
+	if(mode&BINARY)
+		this->ReadBinary(stream, (mode&COLOR));
+	else
+		this->ReadPlainText(stream, (mode&COLOR));
+
+	stream.close();
+}
+
+int Image::Write(const char *fileName){ this->Write(fileName, COLOR_BINARY); }
+
+int Image::Write(const char *fileName, int mode)
+{
+	std::ofstream stream;
+	stream.open(fileName);
+
+	this->WriteHeader(stream, mode);
 
 	// Write image
-	if(mode == COLOR_BINARY)
-		this->WriteBinary(stream);
-	else if(mode == COLOR_TEXT)
-		this->WritePlainText(stream);
+	if(mode&BINARY)
+		this->WriteBinary(stream, (mode&COLOR));
+	else
+		this->WritePlainText(stream, (mode&COLOR));
 
 	stream.close();
 }
 
 
-int Image::ReadPlainText(std::ifstream &stream)
+int Image::ReadPlainText(std::ifstream &stream, bool color)
 {
-	std::cout << "Reading P3 image not implemented!\n";
+	if(color)
+		for(int i=0; i<this->width *this->height; i++)
+			stream >> this->image[i];
+	else
+		for(int i=0; i<this->width *this->height; i++)
+			stream >> this->image[i][0];
 }
 
-int Image::ReadBinary(std::ifstream &stream)
+int Image::ReadBinary(std::ifstream &stream, bool color)
 {
-	for(int i=0; i<this->width *this->height; i++)
-		stream >> this->image[i];
+	if(color)
+		for(int i=0; i<this->width *this->height; i++)
+			this->image[i].Read(stream);
+	else
+		for(int i=0; i<this->width *this->height; i++)
+			this->image[i].Read(stream, 0);
 }
 
-int Image::WritePlainText(std::ofstream &stream)
+int Image::WritePlainText(std::ofstream &stream, bool color)
 {
-	std::cout << "Writing P3 image not implemented!\n";
+	if(color)
+		for(int i=0; i<this->width *this->height; i++)
+			stream << this->image[i];
+	else
+		for(int i=0; i<this->width *this->height; i++)
+			stream << this->image[i][0];
 }
 
-int Image::WriteBinary(std::ofstream &stream)
+int Image::WriteBinary(std::ofstream &stream, bool color)
 {
-	for(int i=0; i<this->width *this->height; i++)
-		stream << this->image[i];
+	if(color)
+		for(int i=0; i<this->width *this->height; i++)
+			this->image[i].Write(stream);
+	else
+		for(int i=0; i<this->width *this->height; i++)
+			this->image[i].Write(stream, 0);
 }
 
 void Image::Smooth()
@@ -163,6 +208,12 @@ void Image::Smooth_WhithouBorders()
 	for(int i=1; i< this->height -1; i++)
 		for(int j=1; j<this->width -1; j++)
 			this->GetPixel(i, j) = copy.SmoothedPixel(i, j);
+}
+
+void Image::Smooth_Line_WhithouBorders(int line, Image &origin)
+{
+	for(int j=1; j<this->width -1; j++)
+		this->GetPixel(line, j) = origin.SmoothedPixel(line, j);
 }
 
 Pixel & Image::GetPixel(int i, int j)
@@ -239,8 +290,7 @@ std::vector<Image> Image::Split(int vertical, int horizontal)
 
 void Image::SetWithSubimage(Image &other, int line, int column, int width, int height)
 {
-	this->Init(width, height);
-	this->color = other.color;
+	this->Init(width, height, other.color);
 
 	int line_min 	= (line < 0) 						? 0 : line;
 	int column_min 	= (column < 0) 						? 0 : column;
@@ -283,10 +333,10 @@ void Image::Merge(std::vector<Image> &others, int verticalSplits)
 	int curLine = 0;
 	int curColumn = 0;
 
-	for(int i=0; i<horizontalSplits; i++)
+	for(int i=0; i<verticalSplits; i++)
 	{
 		curColumn = 0;
-		for(int j=0; j<verticalSplits; j++)
+		for(int j=0; j<horizontalSplits; j++)
 		{
 			this->Merge(others[curImage], curLine, curColumn);
 
@@ -350,8 +400,7 @@ void Image::SetFromArray(const char *array, int width, int height, bool color)
 	if(this->image != NULL)
 		delete[] this->image;
 
-	this->Init(width, height);
-	this->color = color;
+	this->Init(width, height, color);
 
 	if(color)
 		for(int i=0; i< width *height; i++)

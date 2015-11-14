@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <sstream>
 
 
 //! Channel color enumeration
@@ -12,10 +13,14 @@
 */
 enum Image_File_Mode 
 { 
-	BW_TEXT			= 0, // 00
-	BW_BINARY		= 1, // 01
-	COLOR_TEXT		= 2, // 10
-	COLOR_BINARY	= 3  // 11
+	// Modes
+	BW_TEXT			= 0, 	// 00
+	BW_BINARY		= 1, 	// 01
+	COLOR_TEXT		= 2, 	// 10
+	COLOR_BINARY	= 3, 	// 11
+	// Masks
+	BINARY 			= 1,	// 01
+	COLOR 			= 2 	// 10
 };
 
 class Image
@@ -28,18 +33,21 @@ private:
 public:
 	Image();
 	Image(int width, int height);
+	Image(int width, int height, bool color);
 	Image(Image *other);
 	~Image();
 
 	int Read(const char *fileName);
 
 	int Write(const char *fileName);
-	int Write(const char *fileName, const int mode);
+	int Write(const char *fileName, int mode);
 
 	//! Smooth image
 	void Smooth();
 
-	void Smooth_WhithouBorders(); // TODO
+	void Smooth_WhithouBorders();
+
+	void Smooth_Line_WhithouBorders(int line, Image &origin);
 
 	std::vector<Image> Split(int vertical, int horizontal);
 
@@ -58,15 +66,19 @@ public:
 	static int GetImageArraySize(int width, int heigh, bool color);
 
 private:
-	void Init(int width, int height);
+	void Init(int width, int height, bool color);
+	
+	int ReadHeader(std::ifstream &stream, int &mode);
+	
+	int WriteHeader(std::ofstream &stream, int &mode);
 
-	int ReadPlainText(std::ifstream &stream);
+	int ReadPlainText(std::ifstream &stream, bool color);
 
-	int ReadBinary(std::ifstream &stream);
+	int ReadBinary(std::ifstream &stream, bool color);
 
-	int WritePlainText(std::ofstream &stream);
+	int WritePlainText(std::ofstream &stream, bool color);
 
-	int WriteBinary(std::ofstream &stream);
+	int WriteBinary(std::ofstream &stream, bool color);
 
 	Pixel & GetPixel(int i, int j);
 
@@ -94,7 +106,7 @@ public:
 		{
 			if(this->image != NULL)
 				delete[] this->image;
-			this->Init(other.width, other.height);
+			this->Init(other.width, other.height, other.color);
 			for(int i=0; i<this->width *this->height; i++)
 				this->image[i] = other.image[i];
 		}
