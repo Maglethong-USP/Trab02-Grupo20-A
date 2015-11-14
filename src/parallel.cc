@@ -75,13 +75,14 @@ int main(int argc, char *argv[])
 		}
 
 		// Do one smooth yourself
+		Image copy;
+		copy = imgList[0];
 		#pragma omp parallel for
 		for(int i=1; i<imgList[0].GetHeight() -1; i++)
 		{
-			Img copy;
-			copy = imgList[0];
 			imgList[0].Smooth_Line_WhithouBorders(i, copy);
 		}
+//		imgList[0].Smooth_WhithouBorders();
 
 		// Wait for them to Respond
 		for(int i=1; i<imgList.size(); i++)
@@ -118,13 +119,14 @@ int main(int argc, char *argv[])
 		// Execute and Respond
 		img.SetFromArray(imgArray, width, height, color);
 
+		Image copy;
+		copy = img;
 		#pragma omp parallel for
 		for(int i=1; i<img.GetHeight() -1; i++)
 		{
-			Img copy;
-			copy = img;
 			img.Smooth_Line_WhithouBorders(i, copy);
 		}
+//		img.Smooth_WhithouBorders();
 
 		// Respond
 		img.GetImageAsArray(imgArray);
