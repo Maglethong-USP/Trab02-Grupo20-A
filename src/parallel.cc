@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	//	std::cout << imgList.size() << " - " << noProcesses << "\n";
 		if(imgList.size() != noProcesses)
 		{
-			std::cout << "Number of fragments: "imgList.size() << " - Number of processes" << noProcesses << "\n";
+			std::cout << "Number of fragments: " << imgList.size() << " - Number of processes" << noProcesses << "\n";
 			std::cout << "Ammout incompattible. Aborting!\n";
 			delete[] imgArray;
 			return 1;

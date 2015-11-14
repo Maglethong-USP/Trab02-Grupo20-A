@@ -40,8 +40,8 @@ done
 
 # Run for each Image in sequential
 echo " " >> execTime
-echo "Starting Sequential Experiments: " >> execTime
-echo "Starting Sequential Experiments: "
+echo "Starting Parallel Experiments: " >> execTime
+echo "Starting Parallel Experiments: "
 for inFile in "ExtraLarge\(16384x8192\).pgm" "Large\(8192x4096\).pgm" "Medium\(4096x2048\).pgm" "Small\(2048x1024\).ppm" "ExtraLarge\(16384x8192\).ppm" "Large\(8192x4096\).ppm" "Medium\(4096x2048\).ppm" "Small\(2048x1024\).pgm"
 do
 	for i in $(seq 1 $times_to_execute)
