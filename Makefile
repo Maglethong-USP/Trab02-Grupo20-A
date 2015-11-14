@@ -40,15 +40,15 @@ s:
 
 parallel: p
 p:
-	mpiCC -o $(BIN)/parallel $(SOURCES) $(SRC)/parallel.cc
+	mpiCC -o $(BIN)/parallel $(SOURCES) $(SRC)/parallel.cc -fopenmp
 
 runsequencial: rs
 rs:
-	$(BIN)/sequencial
+	$(BIN)/sequencial ./doc/inputs/lena_color.ppm ./doc/outputs/lena_color_s.ppm
 
 runparallel: rp
 rp:
-	mpirun $(BIN)/parallel -hostsfile ../../hosts -np 2
+	mpirun $(BIN)/parallel ./doc/inputs/lena_color.ppm ./doc/outputs/lena_color_p.ppm 2 2 -np 4
 
 zip:
 	@zip -r $(ZIP) $(LIB) $(SRC) $(DOC) $(ZIP_FILES)
