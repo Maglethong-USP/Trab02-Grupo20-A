@@ -2,7 +2,7 @@
 
 #include "mpi.h"
 
-
+#include <cstdlib>
 
 
 
@@ -53,9 +53,11 @@ int main(int argc, char *argv[])
 		int largestSize = Image::GetImageArraySize(imgList[0].GetWidth(), imgList[0].GetHeight(), imgList[0].GetColor());
 		imgArray = new char[largestSize];
 
-		for(int i=0; i<imgList.size(); i++)
+		std::cout << imgList.size() << " - " << noProcesses << "\n";
+
+		for(int i=1; i<imgList.size(); i++)
 		{
-			int dest = i+1;
+			int dest = i;
 			size = Image::GetImageArraySize(imgList[i].GetWidth(), imgList[i].GetHeight(), imgList[i].GetColor());
 			if(size > largestSize) // Shouldn't happen but lets be safe
 				return 1;
@@ -68,13 +70,16 @@ int main(int argc, char *argv[])
 			MPI_Send(&color, 	1, 		MPI_INT, 	dest, 0, MPI_COMM_WORLD);
 			MPI_Send(&width, 	1, 		MPI_INT, 	dest, 1, MPI_COMM_WORLD);
 			MPI_Send(&height, 	1, 		MPI_INT, 	dest, 2, MPI_COMM_WORLD);
-			MPI_Send(&imgArray, size, 	MPI_CHAR, 	dest, 3, MPI_COMM_WORLD);
+			MPI_Send(imgArray, 	size, 		MPI_CHAR, 	dest, 3, MPI_COMM_WORLD);
 		}
 
+		// Do one smooth yourself
+		imgList[0].Smooth_WhithouBorders();
+
 		// Wait for them to Respond
-		for(int i=0; i<imgList.size(); i++)
+		for(int i=1; i<imgList.size(); i++)
 		{
-			int source = i+1;
+			int source = i;
 			color = imgList[i].GetColor();
 			width = imgList[i].GetWidth();
 			height = imgList[i].GetHeight();
@@ -98,10 +103,10 @@ int main(int argc, char *argv[])
 
 		MPI_Recv(&color, 	1, MPI_INT, source, 0, MPI_COMM_WORLD, &Stat);
 		MPI_Recv(&width, 	1, MPI_INT, source, 1, MPI_COMM_WORLD, &Stat);
-		MPI_Recv(&height, 	6, MPI_INT, source, 2, MPI_COMM_WORLD, &Stat);
+		MPI_Recv(&height, 	1, MPI_INT, source, 2, MPI_COMM_WORLD, &Stat);
 		size = Image::GetImageArraySize(width, height, (bool) color);
 		imgArray = new char[size];
-		MPI_Recv(&imgArray, size, MPI_CHAR, source, 3, MPI_COMM_WORLD, &Stat);
+		MPI_Recv(imgArray, size, MPI_CHAR, source, 3, MPI_COMM_WORLD, &Stat);
 
 		// Execute and Respond
 		img.SetFromArray(imgArray, width, height, color);
@@ -109,7 +114,7 @@ int main(int argc, char *argv[])
 
 		// Respond
 		img.GetImageAsArray(imgArray);
-		MPI_Send(&imgArray, size, MPI_CHAR, source, 4, MPI_COMM_WORLD);
+		MPI_Send(imgArray, size, MPI_CHAR, source, 4, MPI_COMM_WORLD);
 
 
 		delete[] imgArray;

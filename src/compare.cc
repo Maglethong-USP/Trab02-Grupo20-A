@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
 	img2.Read(argv[2]);
 
 	if(img1 == img2)
-		std::cout << "Yes!\n"
+		std::cout << "Yes!\n";
 	else
-		std::cout << "No!\n"
+		std::cout << "No!\n";
 
 	return 0;
 }

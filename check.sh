@@ -21,7 +21,7 @@ echo "Running [Sequencial]"
 echo "Running [Seq-Split]"
 ./bin/split ./doc/inputs/lena_color.ppm ./doc/outputs/lena_s_split.ppm 
 echo "Running [Palallel]"
-mpirun ./bin/parallel ./doc/inputs/lena_color.ppm ./doc/outputs/lena_p.ppm 2 2 -np 5 -hosts node03,node04,node06,node07,node08
+mpirun ./bin/parallel ./doc/inputs/lena_color.ppm ./doc/outputs/lena_p.ppm 2 2 -np 4 -hosts node03,node04,node06,node07,node08
 
 echo "Running Compare [Sequencial]-[Seq-Split]"
 ./bin/compare ./doc/outputs/lena_s.ppm ./doc/outputs/lena_s_split.ppm
