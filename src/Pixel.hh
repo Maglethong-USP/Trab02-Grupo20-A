@@ -39,6 +39,12 @@ public:
 	//! Conversion to string
 	std::string ToString();
 
+
+	void Write(std::ostream &out);
+	void Read(std::istream &in);
+	void Write(std::ostream &out, int chanel);
+	void Read(std::istream &in, int chanel);
+
 private:
 	//! 
 	void Init(const p_type r, const p_type g, const p_type b);
@@ -177,31 +183,21 @@ public:
 	// TODO [operador deveria ser para texto... fazer func equivalente para binario]
 	friend std::ostream &operator<<(std::ostream &out, Pixel obj)
 	{
-	//	out << obj.r;
-	//	out << obj.g;
-	//	out << obj.b;
-		char c;
-		c = (char)obj.r;
-		out.write( &c, 1);
-		c = (char)obj.g;
-		out.write( &c, 1);
-		c = (char)obj.b;
-		out.write( &c, 1);
+		out << (int) (obj.r);
+		out << (int) (obj.g);
+		out << (int) (obj.b);
 		return out;
 	}
 
 	friend std::istream &operator>>(std::istream &in, Pixel &obj)
 	{
-	//	in >> obj.r;
-	//	in >> obj.g;
-	//	in >> obj.b;
-		char c;
-		in.read( &c, 1);
-		obj.r = (p_type) c;
-		in.read( &c, 1);
-		obj.g = (p_type) c;
-		in.read( &c, 1);
-		obj.b = (p_type) c;
+		int tmp;
+		in >> tmp;
+		obj.r = tmp;
+		in >> tmp;
+		obj.g = tmp;
+		in >> tmp;
+		obj.b = tmp;
 		return in;
 	}
 

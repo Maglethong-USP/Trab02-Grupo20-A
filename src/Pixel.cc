@@ -39,3 +39,40 @@ std::string Pixel::ToString()
 
 	return stream.str();
 }
+
+
+void Pixel::Write(std::ostream &out)
+{
+	char c;
+	c = (char)this->r;
+	out.write( &c, 1);
+	c = (char)this->g;
+	out.write( &c, 1);
+	c = (char)this->b;
+	out.write( &c, 1);
+}
+
+void Pixel::Read(std::istream &in)
+{
+		char c;
+		in.read( &c, 1);
+		this->r = (p_type) c;
+		in.read( &c, 1);
+		this->g = (p_type) c;
+		in.read( &c, 1);
+		this->b = (p_type) c;
+}
+
+void Pixel::Write(std::ostream &out, int chanel)
+{
+	char c;
+	c = (char)(*this)[chanel];
+	out.write( &c, 1);
+}
+
+void Pixel::Read(std::istream &in, int chanel)
+{
+	char c;
+	in.read( &c, 1);
+	(*this)[chanel] = (p_type) c;
+}
