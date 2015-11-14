@@ -1,6 +1,7 @@
 #include "Image.hh"
 
 #include "mpi.h"
+#include "omp.h"
 
 #include <cstdlib>
 
@@ -74,7 +75,11 @@ int main(int argc, char *argv[])
 		}
 
 		// Do one smooth yourself
-		imgList[0].Smooth_WhithouBorders();
+		#pragma omp parallel for
+		for(int i=1; i<imgList[0].GetHeight() -1; i++)
+		{
+			imgList[0].Smooth_Line_WhithouBorders(i, copy);
+		}
 
 		// Wait for them to Respond
 		for(int i=1; i<imgList.size(); i++)
@@ -110,7 +115,12 @@ int main(int argc, char *argv[])
 
 		// Execute and Respond
 		img.SetFromArray(imgArray, width, height, color);
-		img.Smooth_WhithouBorders();
+		
+		#pragma omp parallel for
+		for(int i=1; i<img.GetHeight() -1; i++)
+		{
+			img.Smooth_Line_WhithouBorders(i, copy);
+		}
 
 		// Respond
 		img.GetImageAsArray(imgArray);
