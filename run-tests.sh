@@ -18,7 +18,8 @@ mkdir ./out
 # Run for each Image in sequential
 echo " " >> execTime
 echo "Starting Sequential Experiments: " >> execTime
-for inFile in "ExtraLarge(16384x8192).pgm" "Large(8192x4096).pgm" "Medium(4096x2048).pgm" "Small(2048x1024).ppm" "ExtraLarge(16384x8192).ppm" "Large(8192x4096).ppm" "Medium(4096x2048).ppm" "Small(2048x1024).pgm"
+echo "Starting Sequential Experiments: "
+for inFile in "ExtraLarge\(16384x8192\).pgm" "Large\(8192x4096\).pgm" "Medium\(4096x2048\).pgm" "Small\(2048x1024\).ppm" "ExtraLarge\(16384x8192\).ppm" "Large\(8192x4096\).ppm" "Medium\(4096x2048\).ppm" "Small\(2048x1024\).pgm"
 do
 	for i in $(seq 1 $times_to_execute)
 	do
@@ -27,19 +28,21 @@ do
 
 		start=$(date +%s.%N)
 
-	#	./bin/sequencial $in_file_name $out_file_name
+		./bin/sequencial $in_file_name $out_file_name
 
 		dur=$(echo "$(date +%s.%N) - $start" | bc)
 
 		message="Using image "$in_file_name" experiment #"$i" took            "$dur
 		echo $message >> execTime
+		echo $message
 	done
 done
 
 # Run for each Image in sequential
 echo " " >> execTime
 echo "Starting Sequential Experiments: " >> execTime
-for inFile in "ExtraLarge(16384x8192).pgm" "Large(8192x4096).pgm" "Medium(4096x2048).pgm" "Small(2048x1024).ppm" "ExtraLarge(16384x8192).ppm" "Large(8192x4096).ppm" "Medium(4096x2048).ppm" "Small(2048x1024).pgm"
+echo "Starting Sequential Experiments: "
+for inFile in "ExtraLarge\(16384x8192\).pgm" "Large\(8192x4096\).pgm" "Medium\(4096x2048\).pgm" "Small\(2048x1024\).ppm" "ExtraLarge\(16384x8192\).ppm" "Large\(8192x4096\).ppm" "Medium\(4096x2048\).ppm" "Small\(2048x1024\).pgm"
 do
 	for i in $(seq 1 $times_to_execute)
 	do
@@ -48,12 +51,13 @@ do
 
 		start=$(date +%s.%N)
 
-	#	./bin/parallel $in_file_name $out_file_name 2 2 -np 4 -hostfile ../../hosts
+		mpirun ./bin/parallel $in_file_name $out_file_name 2 2 -np 4 -hostfile ../../hosts
 
 		dur=$(echo "$(date +%s.%N) - $start" | bc)
 
 		message="Using image "$in_file_name" experiment #"$i" took            "$dur
 		echo $message >> execTime
+		echo $message
 	done
 done
 

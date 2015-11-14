@@ -54,7 +54,14 @@ int main(int argc, char *argv[])
 		int largestSize = Image::GetImageArraySize(imgList[0].GetWidth(), imgList[0].GetHeight(), imgList[0].GetColor());
 		imgArray = new char[largestSize];
 
-		std::cout << imgList.size() << " - " << noProcesses << "\n";
+	//	std::cout << imgList.size() << " - " << noProcesses << "\n";
+		if(imgList.size() != noProcesses)
+		{
+			std::cout << "Number of fragments: "imgList.size() << " - Number of processes" << noProcesses << "\n";
+			std::cout << "Ammout incompattible. Aborting!\n";
+			delete[] imgArray;
+			return 1;
+		}
 
 		for(int i=1; i<imgList.size(); i++)
 		{
