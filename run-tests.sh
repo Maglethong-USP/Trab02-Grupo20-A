@@ -17,9 +17,9 @@ mkdir ./out
 
 # Run for each Image in sequential
 echo "Starting Sequential Experiments: " >> execTime
-for inFile in ExtraLarge(16384x8192).pgm Large(8192x4096).pgm Medium(4096x2048).pgm Small(2048x1024).ppm ExtraLarge(16384x8192).ppm Large(8192x4096).ppm Medium(4096x2048).ppm Small(2048x1024).pgm
+for inFile in "ExtraLarge(16384x8192).pgm" "Large(8192x4096).pgm" "Medium(4096x2048).pgm" "Small(2048x1024).ppm" "ExtraLarge(16384x8192).ppm" "Large(8192x4096).ppm" "Medium(4096x2048).ppm" "Small(2048x1024).pgm"
 do
-	for i in $(seq 1 $max_threads)
+	for i in $(seq 1 $times_to_execute)
 	do
 		in_file_name="../../Images/"$inFile
 		out_file_name="./out/trash"
@@ -30,16 +30,16 @@ do
 
 		dur=$(echo "$(date +%s.%N) - $start" | bc)
 
-		message="Using image "$execTime" experiment #"$i" took "$dur
+		message="Using image "$in_file_name" experiment #"$i" took "$dur
 		echo $message >> execTime
 	done
 done
 
 # Run for each Image in sequential
 echo "Starting Sequential Experiments: " >> execTime
-for inFile in ExtraLarge(16384x8192).pgm Large(8192x4096).pgm Medium(4096x2048).pgm Small(2048x1024).ppm ExtraLarge(16384x8192).ppm Large(8192x4096).ppm Medium(4096x2048).ppm Small(2048x1024).pgm
+for inFile in "ExtraLarge(16384x8192).pgm" "Large(8192x4096).pgm" "Medium(4096x2048).pgm" "Small(2048x1024).ppm" "ExtraLarge(16384x8192).ppm" "Large(8192x4096).ppm" "Medium(4096x2048).ppm" "Small(2048x1024).pgm"
 do
-	for i in $(seq 1 $max_threads)
+	for i in $(seq 1 $times_to_execute)
 	do
 		in_file_name="../../Images/"$inFile
 		out_file_name="./out/trash"
@@ -50,7 +50,7 @@ do
 
 		dur=$(echo "$(date +%s.%N) - $start" | bc)
 
-		message="Using image "$execTime" experiment #"$i" took "$dur
+		message="Using image "$in_file_name" experiment #"$i" took "$dur
 		echo $message >> execTime
 	done
 done
