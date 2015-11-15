@@ -54,7 +54,6 @@ int main(int argc, char *argv[])
 		int largestSize = Image::GetImageArraySize(imgList[0].GetWidth(), imgList[0].GetHeight(), imgList[0].GetColor());
 		imgArray = new char[largestSize];
 
-	//	std::cout << imgList.size() << " - " << noProcesses << "\n";
 		if(imgList.size() != noProcesses)
 		{
 			std::cout << "Number of fragments: " << imgList.size() << " - Number of processes" << noProcesses << "\n";
@@ -89,7 +88,6 @@ int main(int argc, char *argv[])
 		{
 			imgList[0].Smooth_Line_WhithouBorders(i, copy);
 		}
-//		imgList[0].Smooth_WhithouBorders();
 
 		// Wait for them to Respond
 		for(int i=1; i<imgList.size(); i++)
@@ -133,7 +131,6 @@ int main(int argc, char *argv[])
 		{
 			img.Smooth_Line_WhithouBorders(i, copy);
 		}
-//		img.Smooth_WhithouBorders();
 
 		// Respond
 		img.GetImageAsArray(imgArray);
